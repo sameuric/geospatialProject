@@ -8,7 +8,7 @@ from folium.plugins import TimestampedGeoJson
 # gtfs-realtime-bindings
 import folium
 import osm
-from db import retrieveDepartureStation, retrieveArrivalStation, retrieveStations, retrievePath
+from db import retrieveDepartureStation, retrieveArrivalStation, retrieveStations, retrievePath, retrieveMean
 import osmnx as ox
 
 def retrieveCoordinates(currentMoment):
@@ -144,6 +144,27 @@ def retrieveInDb(station1, station2, epoch):
         trip = retrievePath(conn, tripId)
         conn.close()
         return trip
+
+
+
+
+def meanDelays(station1, station2, epoch, epochStart, epochEnd):
+    """
+    Retreive the mean time delay for each stop in a trip
+    """
+    conn = psycopg2.connect(database="traindb", user="postgres", password="password", host="localhost", port="5432")
+    departureStation = retrieveDepartureStation(conn, station1, epoch)
+    arrivalStation = retrieveArrivalStation(conn, station2, epoch)
+
+    validArrivalStation, validDepartureStation = retrieveStations(arrivalStation, departureStation)
+    if len(validArrivalStation) == 0 or len(validDepartureStation) == 0:
+        return []
+    if validDepartureStation[0][0][-1] == validArrivalStation[0][-1]:#-1
+        tripId = validArrivalStation[0][-2] #-1
+        value = retrieveMean(conn, tripId, epochStart, epochEnd)
+        conn.close()
+        return value
+
 
 
 class gtfsData:

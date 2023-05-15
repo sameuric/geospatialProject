@@ -13,9 +13,9 @@ GRANT ALL PRIVILEGES ON DATABASE traindb TO geoProject;
 
 def main():
     con, cur = connectToDB()
-    #createTable(cur)
-    #importGtfsData(cur)
-    #printTable(con, cur)
+    createTable(cur)
+    importGtfsData(cur)
+    printTable(con, cur)
     cur.close()
     con.close()
 
@@ -73,7 +73,7 @@ def importGtfsData(cur):
     dataPath = "data/"
     files = os.listdir(dataPath)
     #todo : make for all the gtfsrt files
-    files = [files[0], files[1]]
+    files = [files[i] for i in range(500, 515)]
     counter = 0
     for file in files:
         cwd = os.getcwd()
@@ -113,6 +113,17 @@ def retrievePath(conn, trip):
     rows = cur.fetchall()
     cur.close()
     return rows
+
+
+def retrieveMean(conn, trip, epochStart, epochEnd):
+    cur = conn.cursor()
+    cur.execute("select nameStation, (AVG(delay)/60)::numeric(5,0) from station where trip = %s and arrivalTime > %s and arrivalTime < %s GROUP BY nameStation ORDER BY nameStation", (trip,epochStart,epochEnd,))
+    conn.commit()
+    rows = cur.fetchall()
+    cur.close()
+    return rows
+
+
 
 
 def retrieveStations(arrivalStation, departureStation):

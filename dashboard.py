@@ -87,7 +87,8 @@ class Fenetre(QWidget):
         layout2.addWidget(page2.lab4, 5, 0)
         layout2.addWidget(destination, 6, 0)
         layout2.addWidget(page2.search, 7, 0)
-        layout2.addWidget(page2.stationList, 8, 0)
+        layout2.addWidget(page2.mean, 8, 0)
+        layout2.addWidget(page2.stationList, 9, 0)
         verticalSpacer = QSpacerItem(40, 30, QSizePolicy.Minimum, QSizePolicy.Expanding)
         layout2.addItem(verticalSpacer, 7, 0, Qt.AlignTop)
         page2.setLayout(layout2)
@@ -146,6 +147,12 @@ class Fenetre(QWidget):
         page2.setStyleSheet("QComboBox {margin-bottom: 10px; padding: 5px}")
         page2.search = QPushButton("Search")
         page2.search.clicked.connect(self.retrieveTrip)
+        page2.search.setStyleSheet("QPushButton {margin-bottom:10px;padding:5px;text-align:center}")
+        page2.mean = QPushButton("Average delay for this line")
+        page2.mean.clicked.connect(self.showMeanDelay)
+        page2.mean.setStyleSheet("QPushButton {margin-bottom:25px;padding:5px;}")
+        page2.mean.setFixedWidth(300)
+        page2.search.setFixedWidth(300)
         return page2
 
     def initWindow(self):
@@ -154,6 +161,36 @@ class Fenetre(QWidget):
         palette = self.palette()
         palette.setColor(QPalette.Window, QColor('#cccccc'))
         self.setPalette(palette)
+    
+    
+    def showMeanDelay(self):
+    
+        # Define time limits for the actual day
+        today = parse(self.page2.date.date().toString())
+        epochMorning = int(datetime(today.year, today.month, today.day, 0, 0).timestamp())
+        epochEvening = int(datetime(today.year, today.month, today.day, 23, 59).timestamp())
+        
+        # Search the trip
+        departureStation = self.departure.currentText()
+        arrivalStation = self.destination.currentText()
+        
+        if departureStation == arrivalStation:
+            self.showInvalidTrip()
+            return
+        
+        means = visualization.meanDelays(departureStation, arrivalStation, self.retrieveTime(), epochMorning, epochEvening)
+        
+        print("------ Mean Delay -------")
+        print(means)
+        
+        # Clear list before printing new one
+        self.page2.stationList.clear()
+        self.page2.stationList.appendPlainText("[STATION]".ljust(20) + "   " + "[MEAN DELAY]")
+        
+        for row in means:
+            self.page2.stationList.appendPlainText(row[0].ljust(20) + "       " + str(row[1]) + " min")
+        
+        
         
     def retrieveTime(self):
         hours = int(self.page2.hours.text()) # we do -2 because we live in gmt +2
@@ -204,11 +241,13 @@ class Fenetre(QWidget):
         
         # Clear list before printing new one
         self.page2.stationList.clear()
+        self.page2.stationList.appendPlainText("[STATION]".ljust(20) + "   " + "[TIME]" +  "     " + "[DELAY]")
+        
         for station in relevantStations:
             arrTime = station[4] - station[6]
             arrTime = datetime.fromtimestamp(float(arrTime)).strftime("%H:%M")
             delay = int(station[6]/60)
-            self.page2.stationList.appendPlainText(station[1].ljust(20) + "   " + arrTime + "    +" + str(delay).ljust(2) + "min")
+            self.page2.stationList.appendPlainText(station[1].ljust(20) + "   " + arrTime + "      +" + str(delay).ljust(2) + "min")
 
 
 
@@ -242,7 +281,7 @@ class Fenetre(QWidget):
         page2.stationList = QPlainTextEdit()
         page2.stationList.setReadOnly(True)
         #page2.stationList.setEnabled(False)
-        page2.stationList.setFixedHeight(200)        
+        page2.stationList.setFixedHeight(200)
         page2.stationList.setStyleSheet("QPlainTextEdit {color:#4400AA;font-family:monospace;}")
         
         
