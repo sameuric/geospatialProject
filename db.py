@@ -116,8 +116,12 @@ def retrievePath(conn, trip):
 
 
 def retrieveMean(conn, trip, epochStart, epochEnd):
+    """
+    Queries the database for the average value of "delay" column,
+    order by mean arrival time and grouped for each invidual station
+    """
     cur = conn.cursor()
-    cur.execute("select nameStation, (AVG(delay)/60)::numeric(5,0) from station where trip = %s and arrivalTime > %s and arrivalTime < %s GROUP BY nameStation ORDER BY nameStation", (trip,epochStart,epochEnd,))
+    cur.execute("select nameStation, (AVG(delay)/60)::numeric(5,0) from station where trip = %s and arrivalTime > %s and arrivalTime < %s GROUP BY nameStation ORDER BY AVG(arrivalTime)", (trip,epochStart,epochEnd,))
     conn.commit()
     rows = cur.fetchall()
     cur.close()

@@ -62,6 +62,12 @@ class Fenetre(QWidget):
         self.setLayouts(self.departure, self.destination, page2)
 
     def setLayouts(self, departure, destination, page2):
+        """
+        Add components to their respective layout
+             slayout1   A sub-layout used to display horizontally
+             slayout2   A sub-layout for the date input
+             layout2    Main layout
+        """
         slayout1 = QHBoxLayout()
         slayout1.addWidget(page2.lab1, Qt.AlignLeft)
         slayout1.addWidget(page2.hours)
@@ -164,6 +170,10 @@ class Fenetre(QWidget):
     
     
     def showMeanDelay(self):
+        """
+        Display on the interface the average delay for each station
+        on a selected trip
+        """
     
         # Define time limits for the actual day
         today = parse(self.page2.date.date().toString())
@@ -180,8 +190,8 @@ class Fenetre(QWidget):
         
         means = visualization.meanDelays(departureStation, arrivalStation, self.retrieveTime(), epochMorning, epochEvening)
         
-        print("------ Mean Delay -------")
-        print(means)
+        #print("------ Mean Delay -------")
+        #print(means)
         
         # Clear list before printing new one
         self.page2.stationList.clear()
@@ -210,18 +220,9 @@ class Fenetre(QWidget):
         """
         stationList = visualization.retrieveInDb(departureStation, arrivalStation, self.retrieveTime())
         
-        print("------ Station List -------")
-        print(stationList)
-        
-        # Allows to show station in right order
-        for station in stationList:
-            if station[1] == arrivalStation:
-                stationList.reverse()
-                break
-            if station[1] == departureStation:
-                break
-
-        
+        #print("------ Station List -------")
+        #print(stationList)
+       
         # We don't need stations out of selected inputs
         relevantStations = []
         relevant = False
@@ -235,8 +236,8 @@ class Fenetre(QWidget):
                     relevantStations.append(station)
         
         
-        print("------ Relevant station list -------")
-        print(relevantStations)
+        #print("------ Relevant station list -------")
+        #print(relevantStations)
         
         
         # Clear list before printing new one

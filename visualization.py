@@ -150,7 +150,10 @@ def retrieveInDb(station1, station2, epoch):
 
 def meanDelays(station1, station2, epoch, epochStart, epochEnd):
     """
-    Retreive the mean time delay for each stop in a trip
+    Retreive the mean time delay for each stop in a trip by:
+        - querying the database for stations 1 & 2 in input
+        - get the common trip id of both station
+        - Retreive the mean delay for the given trip
     """
     conn = psycopg2.connect(database="traindb", user="postgres", password="password", host="localhost", port="5432")
     departureStation = retrieveDepartureStation(conn, station1, epoch)
