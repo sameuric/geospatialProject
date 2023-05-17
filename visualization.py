@@ -40,30 +40,6 @@ def retrieveCoordinates(currentMoment):
         return coordinates
 
 
-def testGeoJson():
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [{
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [[3.6859148, 50.4101452], [3.6918031, 50.4115532]]
-            },
-            "properties": {
-                "times": ['2023-03-27T21:02:00Z', '2023-03-27T21:04:00Z']
-            }
-        }]
-    }
-    return [feature_collection]
-
-
-def truncateCoordinates(currentMoment, coordinates):
-    # 1679955725
-    #print(coordinates)
-    #print(currentMoment)
-    pass
-
-
 def createGeoJSON(currentMoment):
     """
     Function that creates a geoJSON object. We pass it coordinates so the pin on the map can move
@@ -71,10 +47,6 @@ def createGeoJSON(currentMoment):
     :return:
     """
     coordinates = retrieveCoordinates(currentMoment)
-    truncateCoordinates(currentMoment, coordinates)
-
-    # for coordinates in coordinatesSet:
-    #    coordinates[0]['coordinates'] = coordinates[1]['coordinates']
     geoJSONSet = []
 
     feature_collection = {
@@ -105,10 +77,6 @@ def visualizeTrains(currentMoment):
     m = folium.Map(location=belgium_coords, zoom_start=10)
 
     feature_collection = createGeoJSON(currentMoment)
-
-    # Add the GeoJSON data to the map
-
-    # create TimestampedGeoJson object for the current feature collection
     geojson = TimestampedGeoJson(
         json.dumps(feature_collection),
         period="PT1S",  # update frequency in seconds
@@ -117,20 +85,24 @@ def visualizeTrains(currentMoment):
         loop=True,  # loop the animation
     )
 
-    # add the TimestampedGeoJson object to the map
-
     geojson.add_to(m)
 
-    # Show the map in PyCharm
     m.save("map.html")
     travelPath = 'travels.txt'
     if os.path.exists(travelPath):
         os.remove(travelPath)
     return "map.html"
-    #webbrowser.open('map.html')
 
 
 def retrieveInDb(station1, station2, epoch):
+    """
+    Function connecting to the db, retrieving in it rows with the asked departure and arrival stations, and retrieving
+    a trip according to a given time
+    :param station1: departure station
+    :param station2: arrival station
+    :param epoch: time requested by the user
+    :return: the trip found (list of station with a given time and coordinates)
+    """
     conn = psycopg2.connect(database="traindb", user="postgres", password="password", host="localhost", port="5432")
     departureStation = retrieveDepartureStation(conn, station1, epoch)
     arrivalStation = retrieveArrivalStation(conn, station2, epoch)

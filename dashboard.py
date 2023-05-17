@@ -37,6 +37,11 @@ class Fenetre(QWidget):
         self.setTabs(self.page2)
 
     def setTabs(self, page2):
+        """
+        Method that creates tabs in the qwindow
+        :param page2:
+        :return:
+        """
         self.qtw = QTabWidget(self)
         self.qtw.addTab(page2, "Trip details")
         # Stylize the main window
@@ -49,6 +54,11 @@ class Fenetre(QWidget):
         self.setWindowTitle("Dashboard")
 
     def setpage(self, page2):
+        """
+        Method that sets the content of the page 2 together in the layout
+        :param page2:
+        :return:
+        """
         # Ajout des labels
         self.setLabels(page2)
         # table to contain the list of trips
@@ -73,17 +83,11 @@ class Fenetre(QWidget):
         slayout1.addWidget(page2.hours)
         slayout1.addWidget(page2.lab2)
         slayout1.addWidget(page2.minutes)
-        # slayout1.setContentsMargins(0, 0, 0, 0)
-        # slayout1.setSpacing(0)
-        # Date sub-layout
         slayout2 = QHBoxLayout()
         slayout2.addWidget(page2.lab5, Qt.AlignLeft)
         slayout2.addWidget(page2.date)
         slayout1.setContentsMargins(0, 0, 0, 0)
-        # slayout1.setSpacing(0)
-        # Layouts
         layout1 = QVBoxLayout()
-        # Layout page 2
         layout2 = QGridLayout()
         layout2.addWidget(page2.lab0, 0, 0)
         layout2.addLayout(slayout2, 1, 0)
@@ -100,6 +104,11 @@ class Fenetre(QWidget):
         page2.setLayout(layout2)
 
     def setTime(self, page2):
+        """
+        Function allowing to propose to the user to enter a date and hour for the trip he wants to visualize
+        :param page2:
+        :return:
+        """
         # Edition de l'heure
         page2.hours = QLineEdit("13")
         page2.minutes = QLineEdit("24")
@@ -113,6 +122,13 @@ class Fenetre(QWidget):
     
 
     def setScrollBox(self, page2, station_names):
+        """
+        Function allowing to add multiple stations to a scrollbox, to facilitate the selection of departure and destination
+        for the user
+        :param page2: page on which the scrollbox will show
+        :param station_names: names of stations to add to the scrollbox
+        :return:
+        """
         with open('data/gtfs/stops.txt', 'r') as file:
             trips = file.readlines()[1:]
         # Ajout de la sélection du départ et destination
@@ -137,6 +153,11 @@ class Fenetre(QWidget):
         return departure, destination
 
     def setLabels(self, page2):
+        """
+        Function adding labels to the window
+        :param page2:
+        :return:
+        """
         page2.lab0 = QLabel("My travel")
         page2.lab0.setStyleSheet("QLabel { font: 15pt; font-family:'Cambria'; margin: 10px 0 20px 160px }")
         page2.lab1 = QLabel("Time:")
@@ -146,7 +167,10 @@ class Fenetre(QWidget):
         page2.lab5 = QLabel("Date:")
 
     def createTabs(self):
-        # Create tab pages
+        """
+        Method that creates tabs in the page
+        :return: the page with the new tabs in it
+        """
         page2 = QWidget()
         page2.setStyleSheet("QLabel {margin-top: 10px}")
         self.setStyleSheet("QLineEdit {max-width:30px; padding: 3px}")
@@ -162,7 +186,10 @@ class Fenetre(QWidget):
         return page2
 
     def initWindow(self):
-        # Background color
+        """
+        Method that configures the initial parameters of the qwindow
+        :return:
+        """
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(QPalette.Window, QColor('#cccccc'))
@@ -174,13 +201,10 @@ class Fenetre(QWidget):
         Display on the interface the average delay for each station
         on a selected trip
         """
-    
-        # Define time limits for the actual day
         today = parse(self.page2.date.date().toString())
         epochMorning = int(datetime(today.year, today.month, today.day, 0, 0).timestamp())
         epochEvening = int(datetime(today.year, today.month, today.day, 23, 59).timestamp())
-        
-        # Search the trip
+
         departureStation = self.departure.currentText()
         arrivalStation = self.destination.currentText()
         
@@ -189,11 +213,6 @@ class Fenetre(QWidget):
             return
         
         means = visualization.meanDelays(departureStation, arrivalStation, self.retrieveTime(), epochMorning, epochEvening)
-        
-        #print("------ Mean Delay -------")
-        #print(means)
-        
-        # Clear list before printing new one
         self.page2.stationList.clear()
         self.page2.stationList.appendPlainText("[STATION]".ljust(20) + "   " + "[MEAN DELAY]")
         
@@ -203,6 +222,11 @@ class Fenetre(QWidget):
         
         
     def retrieveTime(self):
+        """
+        Method that retrieves the user input (time and date) and that converts it into epoch time, to facilitate
+        db queries
+        :return: epoch time in from of integer
+        """
         hours = int(self.page2.hours.text()) # we do -2 because we live in gmt +2
         minutes = int(self.page2.minutes.text())
         date = self.page2.date.date().toString()
@@ -219,11 +243,7 @@ class Fenetre(QWidget):
         alongside with their arrival time and time delay
         """
         stationList = visualization.retrieveInDb(departureStation, arrivalStation, self.retrieveTime())
-        
-        #print("------ Station List -------")
-        #print(stationList)
-       
-        # We don't need stations out of selected inputs
+
         relevantStations = []
         relevant = False
         for station in stationList:
@@ -234,13 +254,7 @@ class Fenetre(QWidget):
             elif relevant:
                 if self.retrieveTime() < int(station[4]):
                     relevantStations.append(station)
-        
-        
-        #print("------ Relevant station list -------")
-        #print(relevantStations)
-        
-        
-        # Clear list before printing new one
+
         self.page2.stationList.clear()
         self.page2.stationList.appendPlainText("[STATION]".ljust(20) + "   " + "[TIME]" +  "     " + "[DELAY]")
         
@@ -254,6 +268,11 @@ class Fenetre(QWidget):
 
 
     def retrieveTrip(self):
+        """
+        Method that retrieves the user input departure station and arrival station), checks it and shows a visualisation
+         of the train between the 2 stations by opening it in the browser
+        :return:
+        """
         time = self.retrieveTime()
         departureStation = self.departure.currentText()
         arrivalStation = self.destination.currentText()
@@ -264,11 +283,9 @@ class Fenetre(QWidget):
         else:
             data = visualization.gtfsData(self.osmdata, [departureStation, arrivalStation, time])
             if data.found:
-                file_ = data.file
                 webbrowser.open(data.file)
             else:
                 self.showNoTripFound()
-    
         self.showStationsList(departureStation, arrivalStation)
         
         
@@ -281,12 +298,15 @@ class Fenetre(QWidget):
         """
         page2.stationList = QPlainTextEdit()
         page2.stationList.setReadOnly(True)
-        #page2.stationList.setEnabled(False)
         page2.stationList.setFixedHeight(200)
         page2.stationList.setStyleSheet("QPlainTextEdit {color:#4400AA;font-family:monospace;}")
         
         
     def showNoTripFound(self):
+        """
+        Function allowing to show a popup message when the user entered a non-existent trip
+        :return:
+        """
         message_box = QMessageBox()
         message_box.setText("No trip found.")
         message_box.setWindowTitle("Invalid travel")
@@ -295,6 +315,10 @@ class Fenetre(QWidget):
         result = message_box.exec_()
 
     def showInvalidTrip(self):
+        """
+        Function allowing to show a pop up message when the user selected the same departure as destination
+        :return:
+        """
         message_box = QMessageBox()
         message_box.setText("Departure station cannot be the same as arrival station.")
         message_box.setWindowTitle("Invalid travel")
